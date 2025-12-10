@@ -1,6 +1,6 @@
 {
   "name": "CH224Q_Arduino",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Arduino Library to control the CH224Q & CH224A via I2C",
   "keywords": "CH224Q, USB-PD",
   "repository":
