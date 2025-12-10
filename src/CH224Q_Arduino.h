@@ -45,7 +45,7 @@ class CH224Q {
 public:
 
     CH224Q(TwoWire* wire = &Wire); //Constructor
-    bool begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
+    uint8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
 
     uint8_t requestMode(CH224Q_MODE Mode);
     CH224Q_STATUS getStatus();

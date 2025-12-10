@@ -1,6 +1,6 @@
 #pragma once
 
-#define CH224Q_STATUS                   0x09  //Protocol Status Register, Bit 0-4 inicates weather a protocoll handshake was successfull | Read-Only
+#define CH224Q_STATUS_REGISTER          0x09  //Protocol Status Register, Bit 0-4 inicates weather a protocoll handshake was successfull | Read-Only
 #define CH224Q_MODE_CTRL                0x0A  //Voltage Mode Control Register, write some bits into it to request Fixed PDO's or PPS-Mode or AVS-Mode | Write-Only
 #define CH224Q_CURRENT_MEAS             0x50  //Contains the maximum available current under the current PD-Mode. (50mA per LSB) | Read-Only
 #define CH224Q_AVX_CTRL1                0x51  //AVX_CTRL1/2 Registers contains two bytes that requests a Voltage in AVX-Mode (100mV per LSB) | Write-Only

@@ -7,7 +7,7 @@ CH224Q::CH224Q(TwoWire* wire)
     _wire = wire;
 }
 
-void CH224Q::begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS)
+uint8_t CH224Q::begin(uint8_t address)
 {
     _addr = address;
     if (!_wire) return false; //return false if no wire instance
@@ -58,7 +58,7 @@ CH224Q_STATUS CH224Q::getStatus()
 {
 
     uint8_t registerValue = 0;
-    readRegister(CH224Q_STATUS, &registerValue);
+    readRegister(CH224Q_STATUS_REGISTER, registerValue);
 
     //check which Bit is set and return corresponding status
     if (registerValue & CH224Q_STATUS_BC_ACTIVATED) {
