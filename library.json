@@ -1,0 +1,21 @@
+{
+  "name": "CH224Q_Arduino",
+  "version": "1.0.0",
+  "description": "Arduino Library to control the CH224Q & CH224A via I2C",
+  "keywords": "CH224Q, USB-PD",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/cad435/CH224Q_Arduino.git"
+  },
+  "authors":
+  [
+    {
+      "name": "cad435",
+	  "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "Arduino",
+  "platforms": "*"
+}
