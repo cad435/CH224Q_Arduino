@@ -10,7 +10,7 @@ PDOInfo decodePDO(uint32_t pdo) {
                 info.type = PDOType::Fixed;
                 info.min_voltage_mV = ((pdo >> 10) & 0x3FFu) * 50u; // 50 mV units
                 info.max_voltage_mV = info.min_voltage_mV;
-                info.current_mA = (pdo & 0x3FFu) * 10u; // 10 mA units
+                info.max_current_mA = (pdo & 0x3FFu) * 10u; // 10 mA units
                 // max_power_mW left 0 (not part of fixed PDO)
                 break;
 
@@ -19,13 +19,14 @@ PDOInfo decodePDO(uint32_t pdo) {
                 info.max_voltage_mV = ((pdo >> 20) & 0x3FFu) * 50u; // 50 mV units
                 info.min_voltage_mV = ((pdo >> 10) & 0x3FFu) * 50u;
                 info.max_power_mW = (pdo & 0x3FFu) * 250u; // 250 mW units
+                info.max_current_mA = 0; // not part of battery PDO
                 break;
 
             case 2: // Variable
                 info.type = PDOType::Variable;
                 info.max_voltage_mV = ((pdo >> 20) & 0x3FFu) * 50u;
                 info.min_voltage_mV = ((pdo >> 10) & 0x3FFu) * 50u;
-                info.current_mA = (pdo & 0x3FFu) * 10u;
+                info.max_current_mA = (pdo & 0x3FFu) * 10u;
                 break;
 
             case 3: // Augmented / APDO (PPS)
@@ -33,7 +34,7 @@ PDOInfo decodePDO(uint32_t pdo) {
                 // APDO uses different widths: Vmax[29:17]=13bits (100mV), Vmin[16:8]=9bits (100mV), I[7:0]=8bits (50mA)
                 info.max_voltage_mV = ((pdo >> 17) & 0x1FFFu) * 100u; // 100 mV units
                 info.min_voltage_mV = ((pdo >> 8) & 0x1FFu) * 100u;   // 100 mV units
-                info.current_mA = (pdo & 0xFFu) * 50u;                // 50 mA units
+                info.max_current_mA = (pdo & 0xFFu) * 50u;                // 50 mA units
                 break;
 
             default:

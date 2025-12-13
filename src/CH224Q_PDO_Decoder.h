@@ -35,7 +35,7 @@ struct PDOInfo {
     uint32_t max_voltage_mV = 0;
 
     // Current fields (max/current depending on type). 0 if unused.
-    uint32_t current_mA = 0;      // max current for fixed/variable/APDO
+    uint32_t max_current_mA = 0;      // max current for fixed/variable/APDO
     uint32_t max_power_mW = 0;    // for battery PDO (max power)
 
     bool valid() const { return type != PDOType::Unknown; }
