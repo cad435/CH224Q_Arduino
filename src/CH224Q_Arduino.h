@@ -31,8 +31,8 @@ public:
     int8_t requestMode(uint8_t Mode); //requests either Fixeds PDO or PPS/AVX mode from the PD-Source
     uint8_t getStatus(); //returns CH224Q_STATUS_REGISTER status bits. Indicate if a protocol handshake was successful and if so which one
 
-    int8_t getNumberPDOs(); //how many PDOs are available from the source capabilities
-    PDOInfo getPDOInfo(uint8_t index); //get decoded PDO info at given index (0-based)
+    int8_t getNumberPDOs(); //how many PDOs are available from the source capabilities. CH224Q can handle up to 12 PDOs
+    PDOInfo decodePDOInfo(uint8_t index); //get decoded PDO info at given index (0-based)
 
     int8_t requestPPSVoltage_mv(uint16_t voltage_mV); //requests the desired PPS voltage in mV (5000 to 28000 mV) from the PD-Source. Will automatically request PPS mode if not already set
     int8_t requestAVSVoltage_mv(uint16_t voltage_mV); //requests the desired AVS voltage in mV (5000 to 20000 mV) from the PD-Source. Will automatically request AVS mode if not already set

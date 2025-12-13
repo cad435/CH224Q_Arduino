@@ -124,7 +124,7 @@ uint8_t CH224Q::getStatus()
     }        
 }
 
-PDOInfo CH224Q::getPDOInfo(uint8_t index)
+PDOInfo CH224Q::decodePDOInfo(uint8_t index)
 {
     PDOInfo pdoInfo;
     
