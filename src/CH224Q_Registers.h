@@ -5,6 +5,7 @@
 #define CH224Q_CURRENT_MEAS             0x50  //Contains the maximum available current under the current PD-Mode. (50mA per LSB) | Read-Only
 #define CH224Q_AVX_CTRL1                0x51  //AVX_CTRL1/2 Registers contains two bytes that requests a Voltage in AVX-Mode (100mV per LSB) | Write-Only
 #define CH224Q_AVX_CTRL2                0x52  //AVX_CTRL2 contains the lower 8 Bits, AVX_CTRL1 the upper 7 Bits plus a enable Bit (hightes bit)
+#define CH224Q_PPS_VOLTAGE_CTRL         0x53  //Contains the desired PPS Voltage in 100mV per LSB when in PPS-Mode | Write-Only
 
 #define CH224Q_SRCCAP_START             0x60  //Contains the Source Capabilities as sent by the Power-Source. There are registers 0x60 to 0x8F this registers are holding a series of 32bit PDO information which have to be decoded | Read-Only
 #define CH224Q_SRCCAP_END               0x8F  //End of Source Capabilities
@@ -17,6 +18,7 @@
 #define CH224Q_STATUS_PD_ACTIVATED      (8)   //Bit 3: USB-PD Protocol Activated (up to 5A @ 5V to 20V), Uses CC1/CC2 for handshaking
 #define CH224Q_STATUS_EPR_ACTIVATED     (16)  //Bit 4: USB-PD with Extended Power Range Activated (up to 5A @ 5V to 28V), Uses CC1/CC2 for handshaking
 
+#define CH224Q_MODE_UNKNOWN             (0)   //No Mode Selected, default state after power-on
 #define CH224Q_MODE_CTRL_PDO_5V_BIT     (1)  //Bit 4: Set this bit to request 5V PDO from the Power-Source
 #define CH224Q_MODE_CTRL_PDO_9V_BIT     (2)  //Bit 5: Set this bit to request 9V PDO from the Power-Source
 #define CH224Q_MODE_CTRL_PDO_12V_BIT    (4) //Bit 6: Set this bit to request 12V PDO from the Power-Source

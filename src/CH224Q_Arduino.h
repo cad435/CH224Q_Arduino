@@ -31,7 +31,10 @@ public:
     uint8_t requestMode(uint8_t Mode);
     uint8_t getStatus();
 
+    uint8_t getNumberPDOs(); //how many PDOs are available from the source capabilities
     PDOInfo getPDOInfo(uint8_t index); //get decoded PDO info at given index (0-based)
+
+    uint8_t setPPSVoltage_mv(uint16_t voltage_mV); //set desired PPS voltage in mV (5000 to 28000 mV)
 
 
 
@@ -43,4 +46,9 @@ private:
 
     TwoWire* _wire;
     uint8_t _addr;
+
+    uint16_t PPS_Voltage_mV = 5000; //for PPS mode: currently set voltage in mV
+
+    uint8_t CurrentMode = CH224Q_MODE_UNKNOWN; //default 5V PDO mode
+
 };

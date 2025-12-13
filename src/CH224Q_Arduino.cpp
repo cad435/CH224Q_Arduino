@@ -50,7 +50,15 @@ uint8_t CH224Q::readRegister(uint8_t reg, uint8_t &value)
 uint8_t CH224Q::requestMode(uint8_t Mode)
 {
     // Write the mode value to the MODE_CTRL register
-    return writeRegister(CH224Q_MODE_CTRL, Mode);
+
+    uint8_t err = writeRegister(CH224Q_MODE_CTRL, Mode);
+
+    if (err != 0)
+        return err; // Return error code if write failed
+    
+    CurrentMode = Mode; // Update current mode
+
+    return 0; // Success
 } 
 
 uint8_t CH224Q::getStatus()
@@ -101,4 +109,54 @@ PDOInfo CH224Q::getPDOInfo(uint8_t index)
     // Decode the PDO value
     pdoInfo = decodePDO(pdoValue);
     return pdoInfo;
+}
+
+uint8_t CH224Q::getNumberPDOs()
+{
+    // Read the source capabilities range
+    // check every PDO register until we hit an invalid one
+    uint8_t count = 0;  
+    for (uint8_t reg = CH224Q_SRCCAP_START; reg <= CH224Q_SRCCAP_END; reg += 4) {
+        uint8_t byteValue = 0;
+        if (readRegister(reg, byteValue) != 0) {
+            break; // Error reading register, stop counting
+        }
+        // If we read a valid PDO (non-zero), increment count
+        if (byteValue != 0) {
+            count++;
+        } else {
+            break; // Stop at first zero PDO
+        }
+    }
+
+    return count;
+}
+
+uint8_t CH224Q::setPPSVoltage_mv(uint16_t voltage_mV)
+{
+    // Check if voltage is within PPS range (5000 to 28000 mV)
+    if (voltage_mV < 5000 || voltage_mV > 28000) {
+        return -1; // Invalid voltage
+    }
+
+    // Calculate the register values based on voltage
+    uint16_t rawValue = voltage_mV / 100; // PPS uses 100mV units
+
+
+    // Write to PPS voltage control register
+    if (writeRegister(CH224Q_PPS_VOLTAGE_CTRL, rawValue) != 0)
+        return -1; // Error writing AVX_CTRL1
+
+
+    PPS_Voltage_mV = voltage_mV; // Update current PPS voltage
+
+
+    //if current mode is not PPS mode, switch to PPS mode
+    if (CurrentMode != CH224Q_MODE_CTRL_PPS_MODE_BIT) {
+        uint8_t err = requestMode(CH224Q_MODE_CTRL_PPS_MODE_BIT);
+        if (err != 0)
+            return err; // Return error code if mode switch failed
+    }
+
+    return 0; // Success
 }
