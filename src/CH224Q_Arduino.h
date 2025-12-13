@@ -26,29 +26,37 @@ class CH224Q {
 public:
 
     CH224Q(TwoWire* wire = &Wire); //Constructor
-    uint8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
+    int8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
 
-    uint8_t requestMode(uint8_t Mode);
-    uint8_t getStatus();
+    int8_t requestMode(uint8_t Mode); //requests either Fixeds PDO or PPS/AVX mode from the PD-Source
+    uint8_t getStatus(); //returns CH224Q_STATUS_REGISTER status bits. Indicate if a protocol handshake was successful and if so which one
 
-    uint8_t getNumberPDOs(); //how many PDOs are available from the source capabilities
+    int8_t getNumberPDOs(); //how many PDOs are available from the source capabilities
     PDOInfo getPDOInfo(uint8_t index); //get decoded PDO info at given index (0-based)
 
-    uint8_t setPPSVoltage_mv(uint16_t voltage_mV); //set desired PPS voltage in mV (5000 to 28000 mV)
+    int8_t requestPPSVoltage_mv(uint16_t voltage_mV); //requests the desired PPS voltage in mV (5000 to 28000 mV) from the PD-Source. Will automatically request PPS mode if not already set
+    int8_t requestAVSVoltage_mv(uint16_t voltage_mV); //requests the desired AVS voltage in mV (5000 to 20000 mV) from the PD-Source. Will automatically request AVS mode if not already set
+
+
+    //TODO:
+    uint16_t getCurrentSetVoltage_mV(); //get currently set max voltage in mV
+    uint16_t getMaxCurrent_mA(); //get currently set max current in mA. Might be invalid if chip operates in QC/BC mode
+    uint16_t getMaxPower_mW();   //get currently set max power in mW
 
 
 
 
 private:
 
-    uint8_t writeRegister(uint8_t reg, uint8_t value);
-    uint8_t readRegister(uint8_t reg, uint8_t &value);
+    int8_t writeRegister(uint8_t reg, uint8_t value);
+    int8_t readRegister(uint8_t reg, uint8_t &value);
 
     TwoWire* _wire;
     uint8_t _addr;
 
-    uint16_t PPS_Voltage_mV = 5000; //for PPS mode: currently set voltage in mV
-
     uint8_t CurrentMode = CH224Q_MODE_UNKNOWN; //default 5V PDO mode
+
+    uint16_t CurrentMaxCurrentLimit_mA = 0; //currently set current limit in mA (0 if not set). Might be invalid if chip operates in QC/BC mode
+    uint16_t CurrentVoltage_mV = 0; //currently set voltage in mV (0 if not set)
 
 };

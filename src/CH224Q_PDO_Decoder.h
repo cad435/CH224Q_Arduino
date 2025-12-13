@@ -29,23 +29,14 @@ struct PDOInfo {
     uint32_t raw = 0;             // original 32-bit PDO value
     PDOType  type = PDOType::Unknown;
 
-    // For fixed: voltage_mV = nominal, min/max equal nominal.
+    // For fixed: voltage_mV = nominal =  min = max.
     // For variable/battery/APDO: min/max valid if set (0 if unused).
-    uint32_t voltage_mV = 0;      // nominal (for fixed) or max for types where applicable
     uint32_t min_voltage_mV = 0;
     uint32_t max_voltage_mV = 0;
 
     // Current fields (max/current depending on type). 0 if unused.
     uint32_t current_mA = 0;      // max current for fixed/variable/APDO
     uint32_t max_power_mW = 0;    // for battery PDO (max power)
-
-    // Convenience: computed power (mW) when voltage and current are available (voltage_mV * current_mA / 1000)
-    uint32_t computed_power_mW() const {
-        if (voltage_mV && current_mA) {
-            return static_cast<uint32_t>((uint64_t)voltage_mV * current_mA / 1000u);
-        }
-        return 0;
-    }
 
     bool valid() const { return type != PDOType::Unknown; }
 };
@@ -54,70 +45,3 @@ struct PDOInfo {
 
 
 #endif // CH224Q_PDO_DECODER_H
-
-
-/*
-
-#include <cstdint>
-#include <iostream>
-
-struct PDOInfo {
-    uint32_t voltage_mV;
-    uint32_t current_mA;
-    uint32_t power_mW;
-    std::string type;
-};
-
-PDOInfo decodePDO(uint32_t pdo) {
-    PDOInfo info;
-    uint8_t pdoType = (pdo >> 30) & 0x3;
-
-    if (pdoType == 0) {
-        // Fixed Supply PDO
-        uint16_t voltage = (pdo >> 10) & 0x3FF;
-        uint16_t current = pdo & 0x3FF;
-        info.voltage_mV = voltage * 50;
-        info.current_mA = current * 10;
-        info.power_mW = info.voltage_mV * info.current_mA / 1000;
-        info.type = "Fixed";
-    } else if (pdoType == 1) {
-        // Battery Supply PDO
-        uint16_t maxVoltage = (pdo >> 20) & 0x3FF;
-        uint16_t minVoltage = (pdo >> 10) & 0x3FF;
-        uint16_t maxPower = pdo & 0x3FF;
-        info.voltage_mV = maxVoltage * 50;
-        info.current_mA = 0; // Not directly available
-        info.power_mW = maxPower * 1000;
-        info.type = "Battery";
-    } else if (pdoType == 2) {
-        // Variable Supply PDO
-        uint16_t maxVoltage = (pdo >> 20) & 0x3FF;
-        uint16_t minVoltage = (pdo >> 10) & 0x3FF;
-        uint16_t current = pdo & 0x3FF;
-        info.voltage_mV = maxVoltage * 50;
-        info.current_mA = current * 10;
-        info.power_mW = info.voltage_mV * info.current_mA / 1000;
-        info.type = "Variable";
-    } else {
-        info.type = "Unknown";
-        info.voltage_mV = 0;
-        info.current_mA = 0;
-        info.power_mW = 0;
-    }
-
-    return info;
-}
-Usage Example
-cpp
-int main() {
-    uint32_t pdo = 0x2A20; // Example PDO value
-    PDOInfo info = decodePDO(pdo);
-    std::cout << "Type: " << info.type << "\n";
-    std::cout << "Voltage: " << info.voltage_mV << " mV\n";
-    std::cout << "Current: " << info.current_mA << " mA\n";
-    std::cout << "Power: " << info.power_mW << " mW\n";
-    return 0;
-}
-
-
-*/
