@@ -17,7 +17,7 @@
 
 #include <cstdint>
 
-enum class PDOType : uint8_t {
+enum PDOType{
         Fixed     = 0,
         Battery   = 1,
         Variable  = 2,
@@ -25,38 +25,33 @@ enum class PDOType : uint8_t {
         Unknown   = 0xFF
     };
 
-    struct PDOInfo {
-        uint32_t raw = 0;             // original 32-bit PDO value
-        PDOType  type = PDOType::Unknown;
+struct PDOInfo {
+    uint32_t raw = 0;             // original 32-bit PDO value
+    PDOType  type = PDOType::Unknown;
 
-        // For fixed: voltage_mV = nominal, min/max equal nominal.
-        // For variable/battery/APDO: min/max valid if set (0 if unused).
-        uint32_t voltage_mV = 0;      // nominal (for fixed) or max for types where applicable
-        uint32_t min_voltage_mV = 0;
-        uint32_t max_voltage_mV = 0;
+    // For fixed: voltage_mV = nominal, min/max equal nominal.
+    // For variable/battery/APDO: min/max valid if set (0 if unused).
+    uint32_t voltage_mV = 0;      // nominal (for fixed) or max for types where applicable
+    uint32_t min_voltage_mV = 0;
+    uint32_t max_voltage_mV = 0;
 
-        // Current fields (max/current depending on type). 0 if unused.
-        uint32_t current_mA = 0;      // max current for fixed/variable/APDO
-        uint32_t max_power_mW = 0;    // for battery PDO (max power)
+    // Current fields (max/current depending on type). 0 if unused.
+    uint32_t current_mA = 0;      // max current for fixed/variable/APDO
+    uint32_t max_power_mW = 0;    // for battery PDO (max power)
 
-        // Convenience: computed power (mW) when voltage and current are available (voltage_mV * current_mA / 1000)
-        uint32_t computed_power_mW() const {
-            if (voltage_mV && current_mA) {
-                return static_cast<uint32_t>((uint64_t)voltage_mV * current_mA / 1000u);
-            }
-            return 0;
+    // Convenience: computed power (mW) when voltage and current are available (voltage_mV * current_mA / 1000)
+    uint32_t computed_power_mW() const {
+        if (voltage_mV && current_mA) {
+            return static_cast<uint32_t>((uint64_t)voltage_mV * current_mA / 1000u);
         }
+        return 0;
+    }
 
-        bool valid() const { return type != PDOType::Unknown; }
-    };
-
-
-class CH224Q_PDO_Decoder {
-public:
-
-    // Decode a single 32-bit PDO into PDOInfo.
-    PDOInfo decode(uint32_t pdo);
+    bool valid() const { return type != PDOType::Unknown; }
 };
+    // Decode a single 32-bit PDO into PDOInfo.
+    PDOInfo decodePDO(uint32_t pdo);
+
 
 #endif // CH224Q_PDO_DECODER_H
 

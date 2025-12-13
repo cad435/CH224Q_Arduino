@@ -47,14 +47,13 @@ uint8_t CH224Q::readRegister(uint8_t reg, uint8_t &value)
 
 }
 
-uint8_t CH224Q::requestMode(CH224Q_MODE Mode)
+uint8_t CH224Q::requestMode(uint8_t Mode)
 {
-
     // Write the mode value to the MODE_CTRL register
     return writeRegister(CH224Q_MODE_CTRL, Mode);
 } 
 
-CH224Q_STATUS CH224Q::getStatus()
+uint8_t CH224Q::getStatus()
 {
 
     uint8_t registerValue = 0;
@@ -62,24 +61,44 @@ CH224Q_STATUS CH224Q::getStatus()
 
     //check which Bit is set and return corresponding status
     if (registerValue & CH224Q_STATUS_BC_ACTIVATED) {
-        return CH224Q_BC_ACTIVATED;
+        return CH224Q_STATUS_BC_ACTIVATED;
     }
     else if (registerValue & CH224Q_STATUS_QC2_ACTIVATED) {
-        return CH224Q_QC2_ACTIVATED;
+        return CH224Q_STATUS_QC2_ACTIVATED;
     }
     else if (registerValue & CH224Q_STATUS_QC3_ACTIVATED) {
-        return CH224Q_QC3_ACTIVATED;
+        return CH224Q_STATUS_QC3_ACTIVATED;
     }
     else if (registerValue & CH224Q_STATUS_PD_ACTIVATED) {
-        return CH224Q_PD_ACTIVATED;
+        return CH224Q_STATUS_PD_ACTIVATED;
     }
     else if (registerValue & CH224Q_STATUS_EPR_ACTIVATED) {
-        return CH224Q_EPR_ACTIVATED;
+        return CH224Q_STATUS_EPR_ACTIVATED;
     }
     else {
-        return CH224Q_NONONE_ACTIVATED;
-    }
-    
+        return CH224Q_STATUS_NONE_ACTIVATED;
+    }        
+}
 
-        
+PDOInfo CH224Q::getPDOInfo(uint8_t index)
+{
+    PDOInfo pdoInfo;
+    
+    // Each PDO is 4 bytes, starting from CH224Q_SRCCAP_START
+    uint8_t regAddress = CH224Q_SRCCAP_START + (index * 4);
+    uint32_t pdoValue = 0;
+
+    // Read 4 bytes of the PDO
+    for (uint8_t i = 0; i < 4; i++) {
+        uint8_t byteValue = 0;
+        if (readRegister(regAddress + i, byteValue) != 0) {
+            // Error reading register
+            return pdoInfo;
+        }
+        pdoValue |= (static_cast<uint32_t>(byteValue) << (i * 8));
+    }
+
+    // Decode the PDO value
+    pdoInfo = decodePDO(pdoValue);
+    return pdoInfo;
 }

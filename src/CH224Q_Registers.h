@@ -10,10 +10,11 @@
 #define CH224Q_SRCCAP_END               0x8F  //End of Source Capabilities
 
 
-#define CH224Q_STATUS_BC_ACTIVATED      (1)  //Bit 0: Battery Charging Protocol Activated (up to 1.5A @ 5V), Uses USB D+/D- for handshaking
-#define CH224Q_STATUS_QC2_ACTIVATED     (2)  //Bit 1: Quick-Charge 2 Protocol Activated (up to 2A @ 5V, 9V or 12V), Uses USB D+/D- for handshaking
-#define CH224Q_STATUS_QC3_ACTIVATED     (4)  //Bit 2: QC3 Protocol Activated (up to 3A @ 3.6V to 20V), Uses USB D+/D- for handshaking
-#define CH224Q_STATUS_PD_ACTIVATED      (8)  //Bit 3: USB-PD Protocol Activated (up to 5A @ 5V to 20V), Uses CC1/CC2 for handshaking
+#define CH224Q_STATUS_NONE_ACTIVATED    (0)   //No Protocol Activated, not a real register, value 0 indicates no bits set in status register at all
+#define CH224Q_STATUS_BC_ACTIVATED      (1)   //Bit 0: Battery Charging Protocol Activated (up to 1.5A @ 5V), Uses USB D+/D- for handshaking
+#define CH224Q_STATUS_QC2_ACTIVATED     (2)   //Bit 1: Quick-Charge 2 Protocol Activated (up to 2A @ 5V, 9V or 12V), Uses USB D+/D- for handshaking
+#define CH224Q_STATUS_QC3_ACTIVATED     (4)   //Bit 2: QC3 Protocol Activated (up to 3A @ 3.6V to 20V), Uses USB D+/D- for handshaking
+#define CH224Q_STATUS_PD_ACTIVATED      (8)   //Bit 3: USB-PD Protocol Activated (up to 5A @ 5V to 20V), Uses CC1/CC2 for handshaking
 #define CH224Q_STATUS_EPR_ACTIVATED     (16)  //Bit 4: USB-PD with Extended Power Range Activated (up to 5A @ 5V to 28V), Uses CC1/CC2 for handshaking
 
 #define CH224Q_MODE_CTRL_PDO_5V_BIT     (1)  //Bit 4: Set this bit to request 5V PDO from the Power-Source

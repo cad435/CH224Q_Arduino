@@ -1,6 +1,6 @@
 #include "CH224Q_PDO_Decoder.h"
 
-PDOInfo CH224Q_PDO_Decoder::decode(uint32_t pdo) {
+PDOInfo decodePDO(uint32_t pdo) {
         PDOInfo info;
 
         info.raw = pdo;

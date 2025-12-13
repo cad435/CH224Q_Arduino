@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "CH224Q_Registers.h"
+#include "CH224Q_PDO_Decoder.h"
 
 /*
     CH224Q device wrapper (generic)
@@ -20,26 +21,6 @@
 
 #define CH224Q_DEFAULT_I2C_ADDRESS 0x22
 
-enum CH224Q_MODE {
-    CH224Q_PDO_5V = CH224Q_MODE_CTRL_PDO_5V_BIT,
-    CH224Q_PDO_9V = CH224Q_MODE_CTRL_PDO_9V_BIT,
-    CH224Q_PDO_12V = CH224Q_MODE_CTRL_PDO_12V_BIT,
-    CH224Q_PDO_15V = CH224Q_MODE_CTRL_PDO_15V_BIT,
-    CH224Q_PDO_20V = CH224Q_MODE_CTRL_PDO_20V_BIT,
-    CH224Q_PDO_28V = CH224Q_MODE_CTRL_PDO_28V_BIT,
-    CH224Q_PPS_MODE = CH224Q_MODE_CTRL_PPS_MODE_BIT,
-    CH224Q_AVS_MODE = CH224Q_MODE_CTRL_AVS_MODE_BIT
-};
-
-enum CH224Q_STATUS {
-    CH224Q_NONONE_ACTIVATED = 0,
-    CH224Q_BC_ACTIVATED = CH224Q_STATUS_BC_ACTIVATED,
-    CH224Q_QC2_ACTIVATED = CH224Q_STATUS_QC2_ACTIVATED,
-    CH224Q_QC3_ACTIVATED = CH224Q_STATUS_QC3_ACTIVATED,
-    CH224Q_PD_ACTIVATED = CH224Q_STATUS_PD_ACTIVATED,
-    CH224Q_EPR_ACTIVATED = CH224Q_STATUS_EPR_ACTIVATED
-};
-
 
 class CH224Q {
 public:
@@ -47,8 +28,10 @@ public:
     CH224Q(TwoWire* wire = &Wire); //Constructor
     uint8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
 
-    uint8_t requestMode(CH224Q_MODE Mode);
-    CH224Q_STATUS getStatus();
+    uint8_t requestMode(uint8_t Mode);
+    uint8_t getStatus();
+
+    PDOInfo getPDOInfo(uint8_t index); //get decoded PDO info at given index (0-based)
 
 
 
