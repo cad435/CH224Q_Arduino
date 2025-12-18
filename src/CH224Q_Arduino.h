@@ -12,20 +12,15 @@
 #include "CH224Q_Registers.h"
 #include "CH224Q_PDO_Decoder.h"
 
-/*
-    CH224Q device wrapper (generic)
-    - Uses TwoWire (I2C) by default
-    - Minimal read/write register helpers suitable for many I2C-based devices
-    - Basic interrupt attach helper
-*/
 
 #define CH224Q_DEFAULT_I2C_ADDRESS 0x22
+
 
 
 class CH224Q {
 public:
 
-    CH224Q(TwoWire* wire = &Wire); //Constructor
+    //CH224Q(); //Constructor
     int8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
 
     int8_t requestMode(uint8_t Mode); //requests either Fixeds PDO or PPS/AVX mode from the PD-Source
@@ -41,15 +36,14 @@ public:
     //TODO:
     uint16_t getCurrentSetVoltage_mV(); //get currently set max voltage in mV
     uint16_t getMaxCurrent_mA(); //get currently set max current in mA. Might be invalid if chip operates in QC/BC mode
-    uint16_t getMaxPower_mW();   //get currently set max power in mW
-
-
+    uint16_t getMaxPower_mW();   //get currently set max power in mW    
 
 
 private:
 
-    int8_t writeRegister(uint8_t reg, uint8_t value);
     int8_t readRegister(uint8_t reg, uint8_t &value);
+    int8_t writeRegister(uint8_t reg, uint8_t value);
+    
 
     TwoWire* _wire;
     uint8_t _addr;
