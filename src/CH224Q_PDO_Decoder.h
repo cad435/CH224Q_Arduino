@@ -21,6 +21,8 @@
 #ifndef CH224Q_PDO_DECODER_H
 #define CH224Q_PDO_DECODER_H
 
+#include <Arduino.h>
+
 #include <cstdint>
 
 enum PDOType{
@@ -48,6 +50,7 @@ struct PDOInfo {
 };
     // Decode a single 32-bit PDO into PDOInfo.
     PDOInfo decodePDO(uint32_t pdo);
+    void PDO2String(PDOInfo pdo, String*); //convert PDOInfo to human-readable string
 
 
 #endif // CH224Q_PDO_DECODER_H

@@ -8,7 +8,9 @@
 #define CH224Q_AVX_CTRL2                0x52  //AVX_CTRL2 contains the lower 8 Bits, AVX_CTRL1 the upper 7 Bits plus a enable Bit (hightes bit)
 #define CH224Q_PPS_VOLTAGE_CTRL         0x53  //Contains the desired PPS Voltage in 100mV per LSB when in PPS-Mode | Write-Only
 
-#define CH224Q_SRCCAP_START             0x60  //Contains the Source Capabilities as sent by the Power-Source. There are registers 0x60 to 0x8F this registers are holding a series of 32bit PDO information which have to be decoded | Read-Only
+#define CH224Q_SRCCAP_META              0x60  //Contains the Source Capabilities as sent by the Power-Source. There are registers 0x60 to 0x8F per datasheet. The first 2 registers however are not used for the actual data
+                                              //Most likely Metadata is stored there.
+#define CH224Q_SRCCAP_START             0x62  //Contains the Source Capabilities as sent by the Power-Source. Datasheet does not specify what registers 0x60 & 0x61 are holding, but this does not contain valid PDO Data
 #define CH224Q_SRCCAP_END               0x8F  //End of Source Capabilities
 
 //defines

@@ -3,76 +3,102 @@
 //#include "CH224Q_PDO_Decoder.h"
 
 
+CH224Q::CH224Q(bool logging, TwoWire* _wire)
+{
+    wire = _wire;
+}
 
 
 int8_t CH224Q::begin(uint8_t address)
 {
-    _addr = address;
-    if (!_wire) return false; //return false if no wire instance
-    _wire->begin(); //initialize I2C bus
+    //Serial.println("test");
+    addr = address;
+    if (!wire) return -1; //return false if no wire instance
+    wire->begin(); //initialize I2C bus
+
+    uint8_t value = 0;
+
+    readRegister(CH224Q_STATUS, value);
+
+#ifdef CH224Q_DEBUG
+    Serial.print("[CH224Q|Info] CH224Q.begin(): Probed register 0x0");
+    Serial.print(CH224Q_STATUS, HEX);
+    Serial.print(", found 0x");
+    Serial.println(value, HEX);
+#endif
+
+    //something must be coming back
+    if (value == 0)
+        return -1;
+    
+
     // simple probe by zero-length transmission
-    //_wire->beginTransmission(_addr); 
-    return 0; //(_wire->endTransmission() == 0);
+    wire->beginTransmission(addr); 
+    if (wire->endTransmission() != 0)
+        return -1;
+    
+    return 0;
 
 }
 
 int8_t CH224Q::writeRegister(uint8_t reg, uint8_t value)
 {
-    Serial.print("CH224Q::writeRegister("); Serial.print(reg, HEX); Serial.print(", "); Serial.print(value, HEX); Serial.println(")");
-    if (!_wire) return -1; //check if Wire is initialized
-
     uint8_t err;
 
-    _wire->beginTransmission(_addr+1); 
-    err = _wire->write(reg); //write register address
-    Serial.println(err);
-    err = _wire->write(value); //write value
-    Serial.println(err);
-    int r = _wire->endTransmission(); //end transmission, 
-    Serial.println(r);
-    return r; //0:success, 1:data too long, 2:NACK on address, 3:NACK on data, 4:other error
+    wire->beginTransmission(addr);
+    wire->write(reg);
+    wire->write(value);
+    err = wire->endTransmission(true); // End transmission and release bus
+
+    /*Serial.print("Wrote 0x");
+    Serial.print(value, HEX);
+    Serial.print(" to register 0x");
+    Serial.println(reg, HEX);*/
+
+    return err; //0:success, 1:data too long, 2:NACK on address, 3:NACK on data, 4:other error
 
 }
 
 int8_t CH224Q::readRegister(uint8_t reg, uint8_t &value)
 {
-    if (!_wire) return -1; //check if Wire is initialized
+    if (!wire) return -1; //check if Wire is initialized
 
-    _wire->beginTransmission(_addr);
-    _wire->write(reg);
-    _wire->endTransmission(false); // Keep connection alive for reading
+    wire->beginTransmission(addr);
+    wire->write(reg);
+    wire->endTransmission(false); // Keep connection alive for reading
 
     uint8_t ret;
-    _wire->requestFrom(0x22, 1); // Request 1 byte
-    if (_wire->available()) {
-        ret = _wire->read();
-        //Serial.print("Register 0x");
-        //Serial.print(reg, HEX);
-        //Serial.print(" value: 0x");
-        //Serial.println(ret, HEX);
+    wire->requestFrom(0x22, 1); // Request 1 byte
+    if (wire->available()) {
+        ret = wire->read();
+        /*Serial.print("Register 0x");
+        Serial.print(reg, HEX);
+        Serial.print(" value: 0x");
+        Serial.println(ret, HEX);*/
     }
     else
         return -1; //no read
 
     value = ret;
     
-    uint8_t r = _wire->endTransmission(); //end transmission, 
+    uint8_t r = wire->endTransmission(); //end transmission, 
 
     return r; //0:success, 1:data too long, 2:NACK on address, 3:NACK on data, 4:other error
 
 }
 
-int8_t CH224Q::requestMode(uint8_t Mode)
+int8_t CH224Q::setMode(uint8_t Mode)
 {
     // Write the mode value to the MODE_CTRL register
 
     int8_t err = writeRegister(CH224Q_VOLTAGEMODE_CTRL, Mode);
 
-    Serial.print("err: ");
-    Serial.println(err);
-
     if (err != 0)
+    {
+        Serial.println("[CH224Q|ERR] CH224Q.setMode() unsuccessfull, I2C Error Code: " + err);
         return err; // Return error code if write failed
+    }
+        
 
         
     //datasheet specifies we cant read the CH224Q_VOLTAGEMODE_CTRL register back to confirm mode, so we just look if any Protocoll Handshake has happened 
@@ -81,42 +107,18 @@ int8_t CH224Q::requestMode(uint8_t Mode)
 
     uint8_t Mode_Readback = getStatus();
 
-    Serial.print("Readback: ");
-    Serial.println(Mode_Readback);
-
     if (Mode_Readback == 0) //if none of the mode bits are set, handshake failed
     {
+        Serial.print("[CH224Q|ERR] CH224Q.setMode() probed register 0x");
+        Serial.print(CH224Q_STATUS, HEX);
+        Serial.println(": could not get a validate handshake from PSU!");
         CurrentMode = CH224Q_MODE_UNKNOWN; //reset current mode
         return -1; // Handshake failed
     }
 
     CurrentMode = Mode; // Update current mode
 
-    switch (Mode)
-    {
-    case CH224Q_MODE_5V:
-        CurrentVoltage_mV = 5000;
-        break;
-    case CH224Q_MODE_9V:
-        CurrentVoltage_mV = 9000;
-        break;  
-    case CH224Q_MODE_12V:
-        CurrentVoltage_mV = 12000;
-        break;  
-    case CH224Q_MODE_15V:
-        CurrentVoltage_mV = 15000;
-        break;
-    case CH224Q_MODE_20V:
-        CurrentVoltage_mV = 20000;
-        break;    
-    default:
-        CurrentVoltage_mV = 0; //default to 0V
-        break;
-    }
-
     return 0; // Success
-    
-
 
 } 
 
@@ -149,27 +151,56 @@ uint8_t CH224Q::getStatus()
     return -1;
 }
 
-PDOInfo CH224Q::decodePDOInfo(uint8_t index)
+uint32_t CH224Q::getPDORawValue(uint8_t index)
 {
-    PDOInfo pdoInfo;
+
+    uint8_t Meta[2] = {0};
+    readRegister(CH224Q_SRCCAP_START, Meta[0]);
+    readRegister(CH224Q_SRCCAP_START, Meta[1]);
+
+#ifdef CH224Q_DEBUG
+
+    Serial.print("PDO Metadata: 0x");
+    Serial.print(Meta[0], HEX);
+    Serial.print("|0x");
+    Serial.println(Meta[1]);
     
+#endif
     // Each PDO is 4 bytes, starting from CH224Q_SRCCAP_START
     uint8_t regAddress = CH224Q_SRCCAP_START + (index * 4);
     uint32_t pdoValue = 0;
 
+    uint8_t bytes[4] = {0};
+    uint8_t err = 0;
+
+
+
     // Read 4 bytes of the PDO
     for (uint8_t i = 0; i < 4; i++) {
-        uint8_t byteValue = 0;
-        if (readRegister(regAddress + i, byteValue) != 0) {
-            // Error reading register
-            return pdoInfo;
-        }
-        pdoValue |= (static_cast<uint32_t>(byteValue) << (i * 8));
-    }
+        err = readRegister(regAddress + i, bytes[i]);
 
-    // Decode the PDO value
-    pdoInfo = decodePDO(pdoValue);
-    return pdoInfo;
+        if (err != 0) {
+            // Error reading register, return invalid PDOInfo
+            Serial.print("[CH224Q|ERR] CH224Q.decodePDOInfo(): Error reading PDO Index ");
+            Serial.println(index);
+            return 0;
+        }
+    }
+    //LSB
+    pdoValue = ( (uint32_t)bytes[0]) | ( (uint32_t)bytes[1] <<  8 ) | ( (uint32_t)bytes[2] << 16 ) | ( (uint32_t)bytes[3] << 24 );
+
+#ifdef CH224Q_DEBUG
+    Serial.print("Raw PDO Bytes: 0x");
+    Serial.print(bytes[3], HEX);
+    Serial.print("|0x");
+    Serial.print(bytes[2], HEX);
+    Serial.print("|0x");
+    Serial.print(bytes[1], HEX);
+    Serial.print("|0x");
+    Serial.println(bytes[0], HEX);
+#endif
+
+    return pdoValue;
 }
 
 int8_t CH224Q::getNumberPDOs()
@@ -206,15 +237,12 @@ int8_t CH224Q::requestPPSVoltage_mv(uint16_t voltage_mV)
 
     // Write to PPS voltage control register
     if (writeRegister(CH224Q_PPS_VOLTAGE_CTRL, rawValue) != 0)
-        return -1; // Error writing AVX_CTRL1
-
-
-    CurrentVoltage_mV = voltage_mV; // Update current PPS voltage
+        return -1; // Error writing PPS_CTRL
 
 
     //if current mode is not PPS mode, switch to PPS mode
     if (CurrentMode != CH224Q_MODE_PPS) {
-        uint8_t err = requestMode(CH224Q_MODE_PPS);
+        uint8_t err = setMode(CH224Q_MODE_PPS);
         if (err != 0)
             return err; // Return error code if mode switch failed
     }
@@ -244,31 +272,17 @@ int8_t CH224Q::requestAVSVoltage_mv(uint16_t voltage_mV)
     if (writeRegister(CH224Q_AVX_CTRL2, lowByte) != 0)
         return -1; // Error writing AVX_CTRL2
 
-    CurrentVoltage_mV = voltage_mV; // Update current AVS voltage
     //if current mode is not AVS mode, switch to AVS mode
     if (CurrentMode != CH224Q_MODE_AVS) {
-        uint8_t err = requestMode(CH224Q_MODE_AVS);
+        uint8_t err = setMode(CH224Q_MODE_AVS);
         if (err != 0)
             return err; // Return error code if mode switch failed
     }
     return 0; // Success
 }
 
-uint16_t CH224Q::getCurrentSetVoltage_mV()
-{
-    return CurrentVoltage_mV;
-}
-
 uint16_t CH224Q::getMaxCurrent_mA()
 {
     readRegister(CH224Q_CURRENT_CAPABILTY, (uint8_t&)CurrentMaxCurrentLimit_mA);
     return CurrentMaxCurrentLimit_mA;
-}
-
-uint16_t CH224Q::getMaxPower_mW()
-{
-    // Multiplay current (in mA) by voltage (in mV) and divide by 1000 to get power in mW
-    
-    return (CurrentMaxCurrentLimit_mA * CurrentVoltage_mV) / 1000;
-
 }
