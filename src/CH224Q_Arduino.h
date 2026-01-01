@@ -2,7 +2,7 @@
     CH224Q_Arduino.h - Main header for CH224Q Arduino library
     A minimal, portable library skeleton providing I2C access and basic API.
     Place this file in src/ of your PlatformIO/Arduino library.
-    License: MIT (adjust as needed)
+    License: MIT 4R3N(cad435) 2025-12-13
 */
 
 #pragma once
