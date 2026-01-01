@@ -1,10 +1,10 @@
 #include "CH224Q_PDO_Decoder.h"
 
-PDOInfo decodePDO(uint32_t pdo) {
+PDOInfo decodePDO(uint32_t pdoRawValue) {
     PDOInfo info;
 
-    info.raw = pdo;
-    uint8_t t = static_cast<uint8_t>((pdo >> 30) & 0x3u);
+    info.raw = pdoRawValue;
+    uint8_t t = static_cast<uint8_t>((pdoRawValue >> 30) & 0x3u);
 
     uint16_t voltage;
     uint16_t current;
@@ -13,8 +13,8 @@ PDOInfo decodePDO(uint32_t pdo) {
         case 0: // Fixed
 
             // Fixed Supply PDO
-            voltage = (pdo >> 10) & 0x3FF;
-            current = pdo & 0x3FF;
+            voltage = (pdoRawValue >> 10) & 0x3FF; //Voltage[19:10]=10bits (50mV)
+            current = pdoRawValue & 0x3FF; //Current [9:0]=10bits (10mA)
             info.min_voltage_mV = voltage * 50;
             info.max_voltage_mV = info.min_voltage_mV;
             info.max_current_mA = current * 10;
@@ -24,25 +24,26 @@ PDOInfo decodePDO(uint32_t pdo) {
 
         case 1: // Battery
             info.type = PDOType::Battery;
-            info.max_voltage_mV = ((pdo >> 20) & 0x3FFu) * 50u; // 50 mV units
-            info.min_voltage_mV = ((pdo >> 10) & 0x3FFu) * 50u;
-            info.max_power_mW = (pdo & 0x3FFu) * 250u; // 250 mW units
+            info.max_voltage_mV = ((pdoRawValue >> 20) & 0x3FFu) * 50u; // MaxVoltage[19:10]=10bits (50mV)
+            info.min_voltage_mV = ((pdoRawValue >> 10) & 0x3FFu) * 50u; // MinVoltage[9:0]=10bits (50mV)
+            info.max_power_mW = (pdoRawValue & 0x3FFu) * 250u;          // MaxPower[9:0]=10bits (250mW)
             info.max_current_mA = 0; // not part of battery PDO
             break;
 
         case 2: // Variable
+            
             info.type = PDOType::Variable;
-            info.max_voltage_mV = ((pdo >> 20) & 0x3FFu) * 50u;
-            info.min_voltage_mV = ((pdo >> 10) & 0x3FFu) * 50u;
-            info.max_current_mA = (pdo & 0x3FFu) * 10u;
+            info.max_voltage_mV = ((pdoRawValue >> 20) & 0x3FFu) * 50u; // MaxVoltage[19:10]=10bits (50mV)
+            info.min_voltage_mV = ((pdoRawValue >> 10) & 0x3FFu) * 50u; // MinVoltage[9:0]=10bits (50mV)
+            info.max_current_mA = (pdoRawValue & 0x3FFu) * 10u;         // Current[9:0]=10bits (10mA)
             break;
 
         case 3: // Augmented / APDO (PPS)
             info.type = PDOType::Augmented;
-            // APDO uses different widths: Vmax[29:17]=13bits (100mV), Vmin[16:8]=9bits (100mV), I[7:0]=8bits (50mA)
-            info.max_voltage_mV = ((pdo >> 17) & 0x1FFFu) * 100u; // 100 mV units
-            info.min_voltage_mV = ((pdo >> 8) & 0x1FFu) * 100u;   // 100 mV units
-            info.max_current_mA = (pdo & 0xFFu) * 50u;                // 50 mA units
+            // APDO uses different widths: Vmax[24:17]=8bits (100mV), Vmin[15:8]=8bits (100mV), I[6:0]=7bits (50mA)
+            info.max_voltage_mV = ((pdoRawValue >> 17) & 0xFFu) * 100u; // 100 mV units
+            info.min_voltage_mV = ((pdoRawValue >> 8) & 0xFFu) * 100u;  // 100 mV units
+            info.max_current_mA = (pdoRawValue & 0x7Fu) * 50u;          // 50 mA units
             break;
 
         default:
@@ -70,7 +71,7 @@ void PDO2String(PDOInfo pdo, String* str)
             *str = "Battery PDO: " + String(pdo.max_power_mW/1000.0f) + "W from " + String(pdo.min_voltage_mV/1000.0f) + "V to " + String(pdo.max_voltage_mV/1000.0f) + "V";
             break;
         case PDOType::Augmented:
-            *str = "Augmented PDO (PPS): " + String(pdo.max_current_mA/1000.0f) + "mA from " + String(pdo.min_voltage_mV/1000.0f) + "V to " + String(pdo.max_voltage_mV/1000.0f) + "V";
+            *str = "Augmented PDO (PPS): " + String(pdo.max_current_mA/1000.0f) + "A from " + String(pdo.min_voltage_mV/1000.0f) + "V to " + String(pdo.max_voltage_mV/1000.0f) + "V";
             break;
         default:
             *str = "Unknown PDO Type";

@@ -12,7 +12,7 @@
 #include "CH224Q_Registers.h"
 #include "CH224Q_PDO_Decoder.h"
 
-#define CH224Q_DEBUG
+//#define CH224Q_DEBUG
 
 #define CH224Q_DEFAULT_I2C_ADDRESS 0x22
 

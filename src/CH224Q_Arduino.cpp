@@ -221,6 +221,13 @@ int8_t CH224Q::getNumberPDOs()
         }
     }
 
+    //not sure why, but the last 4 bytes seems to be always some garbage. The last PDO always gives some strange values.
+    //As the datasheet is not very clear on the register 0x60 afterwards (0x60 ans 0x61 are NOT PDO-Datas, but no mention what it is) the Last PDO will be omitted.
+    //Tested with multible chargers, every charger had some values in the last PDO, which does not make any sense.
+
+    if (count > 0)
+        count -= 1; //omit last PDO
+
     return count;
 }
 
