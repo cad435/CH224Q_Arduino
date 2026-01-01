@@ -11,3 +11,6 @@ Should be working with PPS (Variable Power-Supplies) as well as EPR (Extended Po
 See https://github.com/cad435/CH224Q_Arduino/tree/main/examples/ for examples
 
 Should be working for any MCU as long as the TwoWire Interface from arduino (Wire.h) is accessible.
+
+
+Release under the MIT License: 2025 4R3N(cad435)
