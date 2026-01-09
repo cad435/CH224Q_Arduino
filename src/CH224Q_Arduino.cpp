@@ -3,7 +3,7 @@
 //#include "CH224Q_PDO_Decoder.h"
 
 
-CH224Q::CH224Q(bool logging, TwoWire* _wire)
+CH224Q::CH224Q(TwoWire* _wire)
 {
     wire = _wire;
 }
@@ -36,6 +36,10 @@ int8_t CH224Q::begin(uint8_t address)
     wire->beginTransmission(addr); 
     if (wire->endTransmission() != 0)
         return -1;
+
+    delay(100); //small delay
+
+    setMode(CH224Q_MODE_5V); //default to 5V Fixed PDO mode
     
     return 0;
 
@@ -220,13 +224,6 @@ int8_t CH224Q::getNumberPDOs()
             break; // Stop at first zero PDO
         }
     }
-
-    //not sure why, but the last 4 bytes seems to be always some garbage. The last PDO always gives some strange values.
-    //As the datasheet is not very clear on the register 0x60 afterwards (0x60 ans 0x61 are NOT PDO-Datas, but no mention what it is) the Last PDO will be omitted.
-    //Tested with multible chargers, every charger had some values in the last PDO, which does not make any sense.
-
-    if (count > 0)
-        count -= 1; //omit last PDO
 
     return count;
 }
