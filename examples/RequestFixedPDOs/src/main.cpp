@@ -1,5 +1,5 @@
 /*
- * MiniESP32-PD Example: USB Power Delivery (PD) Info Reader
+ * MiniESP32-PD Example: USB Power Delivery Fixed PDO Request
  * 
  * This example demonstrates how to read and display Power Delivery Object (PDO)
  * information from a USB PD charger using the CH224Q controller.
@@ -47,17 +47,27 @@ void setup() {
 
 void loop() {
 
-
+  Serial.println("Request 5V Fixed PDO");  
   ch224q->setMode(CH224Q_MODE_5V);
   delay(5000); //wait for mode to settle
+  
+  Serial.println("Request 9V Fixed PDO");  
   ch224q->setMode(CH224Q_MODE_9V);
-  delay(5000); //wait for mode to settle  
+  delay(5000); //wait for mode to settle 
+  
+  Serial.println("Request 12V Fixed PDO");  
   ch224q->setMode(CH224Q_MODE_12V);
   delay(5000); //wait for mode to settle
+  
+  Serial.println("Request 15V Fixed PDO");
   ch224q->setMode(CH224Q_MODE_15V);
   delay(5000); //wait for mode to settle
+  
+  Serial.println("Request 20V Fixed PDO");
   ch224q->setMode(CH224Q_MODE_20V);
   delay(5000); //wait for mode to settle
+  
+  Serial.println("Request 28V Fixed PDO(EPR)");
   ch224q->setMode(CH224Q_MODE_28V);
   delay(5000); //wait for mode to settle
 
