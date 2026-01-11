@@ -19,7 +19,7 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/cad435/CH224Q_Arduino",
-  "frameworks": "*",
+  "frameworks": "Arduino",
   "platforms": "*",
   "examples": "examples/*"
 }
