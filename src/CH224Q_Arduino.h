@@ -21,7 +21,7 @@
 class CH224Q {
 public:
 
-    CH224Q(bool logging = false, TwoWire* _wire = &Wire); //Constructor
+    CH224Q(TwoWire* _wire = &Wire); //Constructor
     int8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
 
     int8_t setMode(uint8_t Mode); //requests either Fixeds PDO or PPS/AVX mode from the PD-Source
