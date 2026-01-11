@@ -35,11 +35,14 @@ int8_t CH224Q::begin(uint8_t address)
     // simple probe by zero-length transmission
     wire->beginTransmission(addr); 
     if (wire->endTransmission() != 0)
-        return -1;
+        return -1; 
 
-    delay(100); //small delay
+    delay(1000); //small delay, initialize everything, voltage on External PSU must settle.
+                //1000ms is tested on some PSU's seems to be working on all of them. Any lower vlaue sometimes "crashes" the PSU ant it'll be stuck.
 
     setMode(CH224Q_MODE_5V); //default to 5V Fixed PDO mode
+    //delay(500);
+    //setMode(CH224Q_MODE_5V); //default to 5V Fixed PDO mode
     
     return 0;
 
@@ -230,8 +233,8 @@ int8_t CH224Q::getNumberPDOs()
 
 int8_t CH224Q::requestPPSVoltage_mv(uint16_t voltage_mV)
 {
-    // Check if voltage is within PPS range (5000 to 28000 mV)
-    if (voltage_mV < 5000 || voltage_mV > 28000) {
+    // Check if voltage is within PPS range (3300 to 28000 mV)
+    if (voltage_mV < 3300 || voltage_mV > 28000) {
         return -1; // Invalid voltage
     }
 
