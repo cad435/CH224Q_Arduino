@@ -41,8 +41,6 @@ int8_t CH224Q::begin(uint8_t address)
                 //1000ms is tested on some PSU's seems to be working on all of them. Any lower vlaue sometimes "crashes" the PSU ant it'll be stuck.
 
     setMode(CH224Q_MODE_5V); //default to 5V Fixed PDO mode
-    //delay(500);
-    //setMode(CH224Q_MODE_5V); //default to 5V Fixed PDO mode
     
     return 0;
 
@@ -265,7 +263,7 @@ int8_t CH224Q::requestAVSVoltage_mv(uint16_t voltage_mV)
     }
 
     // Calculate the register values based on voltage
-    uint16_t rawValue = voltage_mV / 100; // AVS uses 100mV units
+    uint16_t rawValue = voltage_mV / 10; // AVS uses 100mV units
 
     uint8_t highByte = (rawValue >> 8) & 0x7F; // Upper 7 bits
     uint8_t lowByte = rawValue & 0xFF;         // Lower 8 bits
@@ -290,6 +288,7 @@ int8_t CH224Q::requestAVSVoltage_mv(uint16_t voltage_mV)
 
 uint16_t CH224Q::getMaxCurrent_mA()
 {
-    readRegister(CH224Q_CURRENT_CAPABILTY, (uint8_t&)CurrentMaxCurrentLimit_mA);
+    readRegister(CH224Q_CURRENT_CAPABILTY, (uint8_t&)CurrentMaxCurrentLimit_mA); //read raw value
+    CurrentMaxCurrentLimit_mA = CurrentMaxCurrentLimit_mA * 50; //50mA per LSB 
     return CurrentMaxCurrentLimit_mA;
 }
