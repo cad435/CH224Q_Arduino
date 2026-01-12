@@ -28,7 +28,7 @@ void setup() {
 
   Serial.println("CH224Q Example");
 
-  ch224q = new CH224Q(true); //set logging enabled
+  ch224q = new CH224Q();
 
   delay(500); //wait for charger to setup everything
 
