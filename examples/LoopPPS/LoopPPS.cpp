@@ -38,6 +38,7 @@ void setup() {
   if (e != 0)
   {
     Serial.println("CH224Q initialisation failed!");
+    Serial.println("Is the powersupply used capable of USB-PD?");
     while(true);
   }
   Serial.println("CH224Q initialisation success!");

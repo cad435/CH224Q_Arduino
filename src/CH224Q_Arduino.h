@@ -22,7 +22,13 @@ class CH224Q {
 public:
 
     CH224Q(TwoWire* _wire = &Wire); //Constructor
-    int8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS);
+
+    /**
+     * initialises the CH224Q chip and I2C communication
+     * Will fail if no CH224Q or CH224A prese.
+     * !!ATTENTION!! Will also fail if connected power supply does not support USB-PD!
+     **/
+    int8_t begin(uint8_t address = CH224Q_DEFAULT_I2C_ADDRESS); 
 
     int8_t setMode(uint8_t Mode); //requests either Fixeds PDO or PPS/AVX mode from the PD-Source
     uint8_t getStatus(); //returns CH224Q_STATUS_REGISTER status bits. Indicate if a protocol handshake was successful and if so which one
