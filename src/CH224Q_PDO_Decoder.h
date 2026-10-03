@@ -4,7 +4,8 @@
  * Intended for use with USB-PD 2.x/3.x common PDO encodings.
  * 
  * Notes (common encodings used here):
- *  - PDO Type: bits 31..30 (0 = Fixed, 1 = Battery, 2 = Variable, 3 = Augmented/APDO (PPS))
+ *  - PDO Type: bits 31..30 (0 = Fixed, 1 = Battery, 2 = Variable, 3 = Augmented/APDO)
+ *  - APDO Type: bits 29..28 (0 = PPS, 1 = EPR AVS)
  *
  * 
  * License: MIT 4R3N(cad435) 2025-12-13
@@ -26,6 +27,7 @@ enum PDOType{
         Battery   = 1,
         Variable  = 2,
         Augmented = 3, // APDO / PPS
+        EPR_AVS   = 4, // APDO / EPR Adjustable Voltage Supply (only in EPR mode)
         Unknown   = 0xFF
     };
 

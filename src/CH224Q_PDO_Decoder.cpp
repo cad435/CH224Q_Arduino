@@ -38,7 +38,20 @@ PDOInfo decodePDO(uint32_t pdoRawValue) {
             info.max_current_mA = (pdoRawValue & 0x3FFu) * 10u;         // Current[9:0]=10bits (10mA)
             break;
 
-        case 3: // Augmented / APDO (PPS)
+        case 3: // Augmented / APDO
+            if (((pdoRawValue >> 28) & 0x3u) == 1) {
+                // EPR AVS: Vmax[25:17]=9bits (100mV), Vmin[15:8]=8bits (100mV), PDP[7:0]=8bits (1W)
+                info.type = PDOType::EPR_AVS;
+                info.max_voltage_mV = ((pdoRawValue >> 17) & 0x1FFu) * 100u;
+                info.min_voltage_mV = ((pdoRawValue >> 8) & 0xFFu) * 100u;
+                info.max_power_mW = (pdoRawValue & 0xFFu) * 1000u;
+                break;
+            }
+            if (((pdoRawValue >> 28) & 0x3u) != 0) {
+                info.type = PDOType::Unknown; // other APDO types (e.g. SPR AVS) not supported
+                break;
+            }
+            // PPS
             info.type = PDOType::Augmented;
             // APDO uses different widths: Vmax[24:17]=8bits (100mV), Vmin[15:8]=8bits (100mV), I[6:0]=7bits (50mA)
             info.max_voltage_mV = ((pdoRawValue >> 17) & 0xFFu) * 100u; // 100 mV units
@@ -60,6 +73,11 @@ void PDO2String(PDOInfo pdo, String* str)
         return;
     }
 
+    if (pdo.raw == 0) {
+        *str = "Empty PDO (unused SPR position in EPR mode)";
+        return;
+    }
+
     switch (pdo.type) {
         case PDOType::Fixed:
             *str = "Fixed PDO: " + String(pdo.max_current_mA/1000.0f) + "A @ " + String(pdo.min_voltage_mV/1000.0f) + "V";
@@ -72,6 +90,9 @@ void PDO2String(PDOInfo pdo, String* str)
             break;
         case PDOType::Augmented:
             *str = "Augmented PDO (PPS): " + String(pdo.max_current_mA/1000.0f) + "A from " + String(pdo.min_voltage_mV/1000.0f) + "V to " + String(pdo.max_voltage_mV/1000.0f) + "V";
+            break;
+        case PDOType::EPR_AVS:
+            *str = "EPR AVS PDO: " + String(pdo.max_power_mW/1000.0f) + "W from " + String(pdo.min_voltage_mV/1000.0f) + "V to " + String(pdo.max_voltage_mV/1000.0f) + "V";
             break;
         default:
             *str = "Unknown PDO Type";

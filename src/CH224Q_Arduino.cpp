@@ -73,7 +73,7 @@ int8_t CH224Q::readRegister(uint8_t reg, uint8_t &value)
     wire->endTransmission(false); // Keep connection alive for reading
 
     uint8_t ret;
-    wire->requestFrom(0x22, 1); // Request 1 byte
+    wire->requestFrom(addr, (uint8_t)1); // Request 1 byte
     if (wire->available()) {
         ret = wire->read();
         /*Serial.print("Register 0x");
@@ -100,7 +100,7 @@ int8_t CH224Q::setMode(uint8_t Mode)
 
     if (err != 0)
     {
-        Serial.println("[CH224Q|ERR] CH224Q.setMode() unsuccessfull, I2C Error Code: " + err);
+        Serial.println("[CH224Q|ERR] CH224Q.setMode() unsuccessfull, I2C Error Code: " + String(err));
         return err; // Return error code if write failed
     }
         
@@ -160,8 +160,8 @@ uint32_t CH224Q::getPDORawValue(uint8_t index)
 {
 
     uint8_t Meta[2] = {0};
-    readRegister(CH224Q_SRCCAP_START, Meta[0]);
-    readRegister(CH224Q_SRCCAP_START, Meta[1]);
+    readRegister(CH224Q_SRCCAP_META, Meta[0]);
+    readRegister(CH224Q_SRCCAP_META + 1, Meta[1]);
 
 #ifdef CH224Q_DEBUG
 
@@ -172,7 +172,10 @@ uint32_t CH224Q::getPDORawValue(uint8_t index)
     
 #endif
     // Each PDO is 4 bytes, starting from CH224Q_SRCCAP_START
+    // In EPR mode (extended message, header bit 15) a 2-byte extended header comes first
     uint8_t regAddress = CH224Q_SRCCAP_START + (index * 4);
+    if (Meta[1] & 0x80)
+        regAddress += 2;
     uint32_t pdoValue = 0;
 
     uint8_t bytes[4] = {0};
@@ -210,23 +213,36 @@ uint32_t CH224Q::getPDORawValue(uint8_t index)
 
 int8_t CH224Q::getNumberPDOs()
 {
-    // Read the source capabilities range
-    // check every PDO register until we hit an invalid one
-    uint8_t count = 0;  
-    for (uint8_t reg = CH224Q_SRCCAP_START; reg <= CH224Q_SRCCAP_END; reg += 4) {
-        uint8_t byteValue = 0;
-        if (readRegister(reg, byteValue) != 0) {
-            break; // Error reading register, stop counting
-        }
-        // If we read a valid PDO (non-zero), increment count
-        if (byteValue != 0) {
-            count++;
-        } else {
-            break; // Stop at first zero PDO
-        }
+    // The SRCCAP area holds the complete Source_Capabilities message as received from the PSU:
+    // 0x60/0x61 = USB-PD message header (little endian), then the PDOs, then the CRC32 of the message.
+    // Counting non-zero PDO slots also counts the CRC32 as an extra PDO (see issue #1),
+    // so the number is taken from the header instead: Bits 14..12 = Number of Data Objects.
+    uint8_t headerLow = 0;
+    uint8_t headerHigh = 0;
+    if (readRegister(CH224Q_SRCCAP_META, headerLow) != 0)
+        return -1; // Error reading register
+    if (readRegister(CH224Q_SRCCAP_META + 1, headerHigh) != 0)
+        return -1; // Error reading register
+
+    uint16_t header = (uint16_t)headerLow | ((uint16_t)headerHigh << 8);
+
+    // Bit 15 set = Extended Message (EPR_Source_Capabilities, chip is in EPR mode).
+    // Then 0x62/0x63 hold the extended header, Bits 8..0 = Data Size in bytes (4 bytes per PDO).
+    // PDO positions 1..7 are the SPR PDOs (unused ones are zero-padded), positions 8+ the EPR PDOs.
+    if (header & 0x8000)
+    {
+        uint8_t extLow = 0;
+        uint8_t extHigh = 0;
+        if (readRegister(CH224Q_SRCCAP_START, extLow) != 0)
+            return -1; // Error reading register
+        if (readRegister(CH224Q_SRCCAP_START + 1, extHigh) != 0)
+            return -1; // Error reading register
+
+        uint16_t dataSize = ((uint16_t)extLow | ((uint16_t)extHigh << 8)) & 0x01FF;
+        return dataSize / 4;
     }
 
-    return count;
+    return (header >> 12) & 0x07;
 }
 
 int8_t CH224Q::requestPPSVoltage_mv(uint16_t voltage_mV)
