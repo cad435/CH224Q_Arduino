@@ -85,10 +85,10 @@ int8_t CH224Q::readRegister(uint8_t reg, uint8_t &value)
         return -1; //no read
 
     value = ret;
-    
-    uint8_t r = wire->endTransmission(); //end transmission, 
 
-    return r; //0:success, 1:data too long, 2:NACK on address, 3:NACK on data, 4:other error
+    // requestFrom() already ends the read with a STOP condition. A further endTransmission() without a
+    // beginTransmission() only caused an extra, empty I2C transfer to the chip and returned its status.
+    return 0; //success
 
 }
 
@@ -304,7 +304,11 @@ int8_t CH224Q::requestAVSVoltage_mv(uint16_t voltage_mV)
 
 uint16_t CH224Q::getMaxCurrent_mA()
 {
-    readRegister(CH224Q_CURRENT_CAPABILTY, (uint8_t&)CurrentMaxCurrentLimit_mA); //read raw value
-    CurrentMaxCurrentLimit_mA = CurrentMaxCurrentLimit_mA * 50; //50mA per LSB 
+    // Read into a separate byte: casting the uint16_t member to uint8_t& only overwrote its low byte, so from the
+    // second call on the old high byte (the previous result in mA) was multiplied in again.
+    uint8_t raw = 0;
+    if (readRegister(CH224Q_CURRENT_CAPABILTY, raw) != 0)
+        return 0; //read error
+    CurrentMaxCurrentLimit_mA = (uint16_t)raw * 50; //50mA per LSB
     return CurrentMaxCurrentLimit_mA;
 }
